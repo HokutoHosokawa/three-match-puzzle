@@ -4,7 +4,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 
-public struct PiecePos : IBufferElementData {
+public struct PiecePos : IComponentData {
     public int2 position;
 }
 
@@ -24,7 +24,7 @@ public class PieceAuthoring : MonoBehaviour
     public byte _is_moved = 0;
     public byte _y_from = 0;
     public byte _y_to = 0;
-    public List<int2> _path = new List<int2>();
+    public Vector2Int position;
 
     class Baker : Baker<PieceAuthoring>{
         public override void Bake(PieceAuthoring src){
@@ -38,10 +38,7 @@ public class PieceAuthoring : MonoBehaviour
             };
             AddComponent(entity, data);
 
-            var buffer = AddBuffer<PiecePos>(entity);
-            foreach(var pos in src._path){
-                buffer.Add(new PiecePos{position = pos});
-            }
+            AddComponent(entity, new PiecePos{position = new int2(src.position.x, src.position.y)});
         }
     }
 }
