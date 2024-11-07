@@ -20,29 +20,24 @@ public partial struct BoardSystem : ISystem
     {
         var spawner = SystemAPI.GetSingleton<Board>();
 
-        int board_size = 5;
+        int board_size = 8;
 
-        int[,] board = 
-        {{1,1,1,1,1},
-        {1,1,1,0,0},
-        {1,1,1,1,1},
-        {0,0,1,1,1},
-        {1,1,1,1,1}};
+        NativeArray<byte> board = GameSystem.BoardLayout;
+
                         
         int board_count = 0;
-        for (int j=0; j<board_size; j++){
-            for (int k=0; k<board_size; k++){
-                if (board[j,k]==1){
+        for (int j=0; j<board.Length; j++){
+                if (board[j] != (byte)5){
                     board_count++;
                 }
-            }
         }
         var instances = state.EntityManager.Instantiate(spawner.Prefab, board_count, Allocator.Temp);
+        //var instances = state.EntityManager.Instantiate(spawner.Prefab, 56, Allocator.Temp);
         int i = 0;
         int width = board_size;
         foreach (var entity in instances)
         {
-            while(board[(i % board_size), (i / board_size)] == 0){
+            while(board[i] == (byte)5){
                 i++;
             }
             var xform = SystemAPI.GetComponentRW<LocalTransform>(entity);
