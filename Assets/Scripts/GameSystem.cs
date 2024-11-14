@@ -7,7 +7,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 [BurstCompile]
 public partial struct GameSystem : ISystem
 {
@@ -15,7 +14,7 @@ public partial struct GameSystem : ISystem
     private int BoardHeight;
     private int MaxColors;
 
-    private NativeArray<byte> BoardLayout;
+    public static NativeArray<byte> BoardLayout;
 
     public void OnCreate(ref SystemState state) {
         //盤面の初期化
@@ -52,7 +51,12 @@ public partial struct GameSystem : ISystem
         };
 
         for (int i = 0; i < BoardLayout.Length; i++) {
-            BoardLayout[i] = (byte)tempLayout[i];
+            if (tempLayout[i] == 0) {
+                BoardLayout[i] = (byte)MaxColors;
+            }
+            else {
+                BoardLayout[i] = (byte)tempLayout[i];
+            }
         }
     }
 
