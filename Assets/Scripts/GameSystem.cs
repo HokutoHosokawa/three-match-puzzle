@@ -275,10 +275,14 @@ public partial struct GameSystem : ISystem
                 BoardLayout[index] = color;
 
                 //board[x, y] = new Piece {color = color, is_moved = 0, y_from = (byte)y, y_to = (byte)y};
+                BoardLayout[index] = color;
 
-                // var entity = state.EntityManager.CreateEntity();
-                // state.EntityManager.AddComponentData(entity, piece);
-                // state.EntityManager.AddComponentData(entity, new PiecePos { position = new int2(x, y)});
+
+                /*
+                var entity = state.EntityManager.CreateEntity();
+                state.EntityManager.AddComponentData(entity, piece);
+                state.EntityManager.AddComponentData(entity, new PiecePos { position = new int2(x, y)});
+                */
             }
         }
         showBoard();
