@@ -149,7 +149,7 @@ public partial struct GameSystem : ISystem
             for (int y = 0; y < BoardHeight; y++){
                 int index = x + y * BoardWidth;
 
-                if (BoardLayout[index] == 0){
+                if (BoardLayout[index] == (byte)MaxColors){
                     continue;
                 }
                 byte color;
@@ -158,7 +158,7 @@ public partial struct GameSystem : ISystem
                 do{
                     color = (byte)random.NextInt(MaxColors);
                 }while (IsPartOfMatch(state, x, y, color));
-                Debug.Log("color: " + color);
+                //Debug.Log("color: " + color);
 
                 var piece = new Piece {
                     color = color,
@@ -168,10 +168,13 @@ public partial struct GameSystem : ISystem
                 };
 
                 //board[x, y] = new Piece {color = color, is_moved = 0, y_from = (byte)y, y_to = (byte)y};
+                BoardLayout[index] = color;
 
+                /*
                 var entity = state.EntityManager.CreateEntity();
                 state.EntityManager.AddComponentData(entity, piece);
                 state.EntityManager.AddComponentData(entity, new PiecePos { position = new int2(x, y)});
+                */
             }
         }
     }
