@@ -23,16 +23,16 @@ public partial struct BoardSystem : ISystem
         int board_size = GameSystem.BoardWidth;
 
         NativeArray<byte> board = GameSystem.BoardLayout;
-
                         
         int board_count = 0;
         for (int j=0; j<board.Length; j++){
-                if (board[j] != (byte)5){
-                    board_count++;
-                }
+            if (board[j] != (byte)GameSystem.MaxColors){
+                board_count++;
+            }
         }
         var instances = state.EntityManager.Instantiate(spawner.Prefab, board_count, Allocator.Temp);
-        //var instances = state.EntityManager.Instantiate(spawner.Prefab, 56, Allocator.Temp);
+        
+
         int i = 0;
         int width = board_size;
         foreach (var entity in instances)
@@ -51,7 +51,6 @@ public partial struct BoardSystem : ISystem
             }
             i++;
         }
-
         state.Enabled = false;
     }
 }
