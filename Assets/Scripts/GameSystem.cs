@@ -7,12 +7,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[UpdateAfter(typeof(InputSystem))]
 [BurstCompile]
 public partial struct GameSystem : ISystem
 {
-    private int BoardWidth;
-    private int BoardHeight;
-    private int MaxColors;
+    public static int BoardWidth;
+    public static int BoardHeight;
+    public static int MaxColors;
 
     public static NativeArray<byte> BoardLayout;
 
@@ -29,7 +30,77 @@ public partial struct GameSystem : ISystem
     }
     public void OnUpdate(ref SystemState state) {
         //盤面とスコアの更新
+        var trigger = SystemAPI.GetSingleton<InputTriggerComponent>();
+        if (trigger.Trigger) {
+            var input = SystemAPI.GetSingleton<InputPos>();
+            Debug.Log("This text is from GameSystem");
+            int start_index_x;
+            int start_index_y;
+            int end_index_x;
+            int end_index_y;
+            if(BoardWidth % 2 == 0) {
+                if (input.startX < 0) {
+                    start_index_x = (int)(input.startX/1.2f) + (BoardWidth/2) - 1;
+                } else {
+                    start_index_x = (int)(input.startX/1.2f) + (BoardWidth/2);
+                }
+                if (input.startY < 0) {
+                    start_index_y = (int)(input.startY/1.2f) + (BoardHeight/2) - 1;
+                } else {
+                    start_index_y = (int)(input.startY/1.2f) + (BoardHeight/2);
+                }
+                if (input.endX < 0) {
+                    end_index_x = (int)(input.endX/1.2f) + (BoardWidth/2) - 1;
+                } else {
+                    end_index_x = (int)(input.endX/1.2f) + (BoardWidth/2);
+                }
+                if (input.endY < 0) {
+                    end_index_y = (int)(input.endY/1.2f) + (BoardHeight/2) - 1;
+                } else {
+                    end_index_y = (int)(input.endY/1.2f) + (BoardHeight/2);
+                }
+            } else {
+                if (input.startX + 0.6 < 0) {
+                    start_index_x = (int)((input.startX+0.6)/1.2f) + (BoardWidth/2) - 1;
+                } else {
+                    start_index_x = (int)((input.startX+0.6)/1.2f) + (BoardWidth/2);
+                }
+                if (input.startY + 0.6 < 0) {
+                    start_index_y = (int)((input.startY+0.6)/1.2f) + (BoardHeight/2) - 1;
+                } else {
+                    start_index_y = (int)((input.startY+0.6)/1.2f) + (BoardHeight/2);
+                }
+                if (input.endX + 0.6 < 0) {
+                    end_index_x = (int)((input.endX+0.6)/1.2f) + (BoardWidth/2) - 1;
+                } else {
+                    end_index_x = (int)((input.endX+0.6)/1.2f) + (BoardWidth/2);
+                }
+                if (input.endY + 0.6 < 0) {
+                    end_index_y = (int)((input.endY+0.6)/1.2f) + (BoardHeight/2) - 1;
+                } else {
+                    end_index_y = (int)((input.endY+0.6)/1.2f) + (BoardHeight/2);
+                }
+            }
+            start_index_y = BoardHeight - start_index_y - 1;
+            end_index_y = BoardHeight - end_index_y - 1;
+            //適当なスコアの加算
+            var scores = SystemAPI.GetSingleton<GameData>();
+            scores.totalScore += 1;
+            SystemAPI.SetSingleton(scores);
 
+            Debug.Log("(" + input.startX + ", " + input.startY + "), (" + input.endX + "," + input.endY + ") → (" + start_index_x + ", " + start_index_y + "), (" + end_index_x + ", " + end_index_y + ")");
+
+            // if(start_index == end_index) {
+            //     return;
+            // }
+
+            //盤面の更新
+            //スコアの更新
+            //盤面の描画
+            //スコアの描画
+            trigger.Trigger = false;
+            SystemAPI.SetSingleton(trigger);
+        }
     }
 
     private void InitializeGameSettings(ref SystemState state) {
@@ -49,6 +120,16 @@ public partial struct GameSystem : ISystem
             1, 1, 1, 1, 1, 1, 1, 1,
             0, 1, 1, 1, 1, 1, 1, 0,
         };
+
+        // int[] tempLayout = new int[] {
+        //     0, 1, 1, 1, 0, 1, 1,
+        //     1, 1, 1, 1, 1, 1, 1,
+        //     1, 1, 1, 0, 1, 1, 1,
+        //     1, 1, 1, 0, 1, 1, 1,
+        //     1, 1, 1, 1, 1, 1, 1,
+        //     1, 1, 1, 1, 1, 1, 1,
+        //     1, 1, 1, 1, 1, 1, 1,
+        // };
 
         for (int i = 0; i < BoardLayout.Length; i++) {
             if (tempLayout[i] == 0) {
@@ -115,5 +196,26 @@ public partial struct GameSystem : ISystem
         return false;
     }
 
+    private int GetPieceCoordinate(float x, float y){
+        int new_x;
+        int new_y;
+        if(BoardWidth % 2 == 0) {
+            new_x = (int)(x/1.2f + BoardWidth/2);
+            new_y = (int)(y/1.2f + BoardHeight/2);
+        }else{
+            new_x = (int)((x+0.6)/1.2f + BoardWidth/2);
+            new_y = (int)((y+0.6)/1.2f + BoardHeight/2);
+        }
+        return new_x + new_y * BoardWidth;
+    }
+
+    private (int, int, int, int) Change2Coordinate(int startX, int startY, int endX, int endY){
+        if ((startX == endX-1 && startY == endY) || (startX == endX && startY == endY-1) || (startX == endX+1 && startY == endY) || (startX == endX && startY == endY+1)){
+            return (startX, startY, endX, endY);
+        }
+        
+        return (-1,-1,-1,-1);
+        
+    }
 }
 

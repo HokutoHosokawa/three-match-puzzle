@@ -15,14 +15,29 @@ public partial struct InputSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
+        bool isInputDetected = false;
+
         if (Input.GetMouseButtonDown(0))
         {
             var input = SystemAPI.GetSingleton<InputPos>();
             Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            input.x = worldPosition.x;
-            input.y = worldPosition.y;
-            Debug.Log(input.x + ", " + input.y);
+            input.startX = worldPosition.x;
+            input.startY = worldPosition.y;
+            Debug.Log("Start Position:(" + input.startX + ", " + input.startY + ")");
             SystemAPI.SetSingleton(input);
         }
+        if (Input.GetMouseButtonUp(0))
+        {
+            var input = SystemAPI.GetSingleton<InputPos>();
+            Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            input.endX = worldPosition.x;
+            input.endY = worldPosition.y;
+            Debug.Log("End Position:(" + input.endX + ", " + input.endY + ")");
+            SystemAPI.SetSingleton(input);
+            var trigger = SystemAPI.GetSingleton<InputTriggerComponent>();
+            trigger.Trigger = true;
+            SystemAPI.SetSingleton(trigger);
+        }
+
     }
 }

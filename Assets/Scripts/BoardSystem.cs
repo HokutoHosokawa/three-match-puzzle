@@ -20,7 +20,7 @@ public partial struct BoardSystem : ISystem
     {
         var spawner = SystemAPI.GetSingleton<Board>();
 
-        int board_size = 8;
+        int board_size = GameSystem.BoardWidth;
 
         NativeArray<byte> board = GameSystem.BoardLayout;
 
@@ -37,15 +37,20 @@ public partial struct BoardSystem : ISystem
         int width = board_size;
         foreach (var entity in instances)
         {
-            while(board[i] == (byte)5){
+            while(board[i] == (byte)GameSystem.MaxColors){
                 i++;
             }
             var xform = SystemAPI.GetComponentRW<LocalTransform>(entity);
             xform.ValueRW = LocalTransform.FromScale(0.8f);
-            xform.ValueRW = LocalTransform.FromPosition(1.2f * (i/width - width/2), 1.2f * ((i%width) - width/2),0);
+            if (width % 2 == 0){
+                xform.ValueRW = LocalTransform.FromPosition(1.2f * (i%width - width/2 + 0.5f), 1.2f * ((width - (i/width) - 1) - width/2 + 0.5f),0);
+            }
+            else
+            {
+                xform.ValueRW = LocalTransform.FromPosition(1.2f * (i%width - width/2), 1.2f * ((width - (i/width) - 1) - width/2),0);
+            }
             i++;
         }
-        Debug.Log(i);
 
         state.Enabled = false;
     }
