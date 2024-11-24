@@ -3,12 +3,12 @@ using UnityEngine;
 
 public struct InputTriggerComponent : IComponentData
 {
-    public bool Trigger;
+    public byte Trigger; //0: トリガーなし, 1: 削除, 2: 移動, 3: 最初のInput
 }
 
 public class InputTriggerAuthoring : MonoBehaviour
 {
-    public bool _trigger = false;
+    public byte _trigger = 0;
 
     class Baker : Baker<InputTriggerAuthoring>
     {

@@ -31,12 +31,13 @@ public partial struct GameSystem : ISystem
     public void OnUpdate(ref SystemState state) {
         //盤面とスコアの更新
         var trigger = SystemAPI.GetSingleton<InputTriggerComponent>();
-        if (trigger.Trigger) {
+        if (trigger.Trigger == 3) {
             var input = SystemAPI.GetSingleton<InputPos>();
             int start_index_x;
             int start_index_y;
             int end_index_x;
             int end_index_y;
+            Debug.Log(input.startX + " " + input.startY + " " + input.endX + " " + input.endY);
             if(BoardWidth % 2 == 0) {
                 if (input.startX < 0) {
                     start_index_x = (int)(input.startX/1.2f) + (BoardWidth/2) - 1;
@@ -90,7 +91,7 @@ public partial struct GameSystem : ISystem
                 //斜め移動だった場合は何もしない
                 // end_index_x = start_index_x;
                 // end_index_y = start_index_y;
-                trigger.Trigger = false;
+                trigger.Trigger = 0;
                 SystemAPI.SetSingleton(trigger);
                 return;
             } else if (Mathf.Abs(moveVecX) > Mathf.Abs(moveVecY)) {
@@ -117,11 +118,13 @@ public partial struct GameSystem : ISystem
                 }
             }
 
+            //Debug.Log("start: " + start_index_x + " " + start_index_y + " end: " + end_index_x + " " + end_index_y);
+
             int start_index = start_index_x + start_index_y * BoardWidth;
             int end_index = end_index_x + end_index_y * BoardWidth;
 
             if (BoardLayout[start_index] == MaxColors || BoardLayout[end_index] == MaxColors || BoardLayout[start_index] == BoardLayout[end_index]) {
-                trigger.Trigger = false;
+                trigger.Trigger = 0;
                 SystemAPI.SetSingleton(trigger);
                 return;
             }
@@ -135,20 +138,23 @@ public partial struct GameSystem : ISystem
                 matchedIndices[i] = 0;
             }
 
-            CheckHorizontalMatches(matchedIndices);
-            CheckVerticalMatches(matchedIndices);
+            matchedIndices = CheckHorizontalMatches(matchedIndices);
+            matchedIndices = CheckVerticalMatches(matchedIndices);
             int matchCount = 0;
             for (int i = 0; i < matchedIndices.Length; i++) {
                 if (matchedIndices[i] == -1) {
+                    BoardLayout[i] = (byte)(MaxColors + 1);
                     matchCount++;
                 }
             }
+
+            matchedIndices.Dispose();
             if(matchCount == 0) {
                 //マッチしなかった場合、元に戻す
                 temp_color = BoardLayout[start_index];
                 BoardLayout[start_index] = BoardLayout[end_index];
                 BoardLayout[end_index] = temp_color;
-                trigger.Trigger = false;
+                trigger.Trigger = 0;
                 SystemAPI.SetSingleton(trigger);
                 return;
             }
@@ -164,48 +170,9 @@ public partial struct GameSystem : ISystem
 
             //消す
 
-
-
-
-
-            //Debug.Log("(" + input.startX + ", " + input.startY + "), (" + input.endX + "," + input.endY + ") → (" + start_index_x + ", " + start_index_y + "), (" + end_index_x + ", " + end_index_y + ")");
-
-            //盤面の更新
-            // var query = state.EntityManager.CreateEntityQuery(typeof(Piece), typeof(PiecePos));
-            // var entities = query.ToEntityArray(Unity.Collections.Allocator.Temp);
-            // // var pieces = state.EntityManager.GetAllEntities();
-            // //Debug.Log(pieces.Length);
-            // var startEntity = entities[0];
-            // var endEntity = entities[0];
-            // foreach (var entity in entities) {
-            //     var pos = state.EntityManager.GetComponentData<PiecePos>(entity);
-
-            //     if (pos.position.x == start_index_x && pos.position.y == start_index_y) {
-            //         startEntity = entity;
-            //     } else if (pos.position.x == end_index_x && pos.position.y == end_index_y) {
-            //         endEntity = entity;
-            //     }
-            // }
-
-            // if (startEntity != Entity.Null && endEntity != Entity.Null) {
-            //     // Pieceデータの取得
-            //     var pieceStart = state.EntityManager.GetComponentData<Piece>(startEntity);
-            //     var pieceEnd = state.EntityManager.GetComponentData<Piece>(endEntity);
-
-            //     // Pieceデータの交換
-            //     Debug.Log(pieceStart.color + "→" + pieceEnd.color);
-            //     state.EntityManager.SetComponentData(startEntity, pieceEnd);
-            //     state.EntityManager.SetComponentData(endEntity, pieceStart);
-
-            //     // PiecePosデータの交換（必要なら）
-            //     state.EntityManager.SetComponentData(startEntity, new PiecePos { position = new int2(end_index_x, end_index_y) });
-            //     state.EntityManager.SetComponentData(endEntity, new PiecePos { position = new int2(start_index_x, start_index_y) });
-            // }
-            //スコアの更新
-            //盤面の描画
-            //スコアの描画
-            trigger.Trigger = false;
+            trigger.Trigger = 2;
             SystemAPI.SetSingleton(trigger);
+            //Debug.Log("Trigger: 2");
         }
     }
 
@@ -330,7 +297,7 @@ public partial struct GameSystem : ISystem
         
     }
 
-    private void CheckHorizontalMatches(NativeArray<int> matchedIndices){
+    private NativeArray<int> CheckHorizontalMatches(NativeArray<int> matchedIndices){
         for (int y = 0; y < BoardHeight; ++y){
             int matchStart = -1;
             int currentColor = -1;
@@ -339,12 +306,12 @@ public partial struct GameSystem : ISystem
                 int color = BoardLayout[index];
                 if (color == currentColor && color != MaxColors){
                     if (matchStart == -1){
-                        matchStart = index - 1;
+                        matchStart = x - 1;
                     }
                 } else {
-                    if(matchStart != -1 && index - matchStart >= 3){
-                        for (int i = matchStart; i < index; ++i){
-                            matchedIndices[index] = -1;
+                    if(matchStart != -1 && x - matchStart >= 3){
+                        for (int i = matchStart; i < x; ++i){
+                            matchedIndices[i + y * BoardWidth] = -1;
                         }
                     }
                     matchStart = -1;
@@ -354,13 +321,14 @@ public partial struct GameSystem : ISystem
 
             if (matchStart != -1 && BoardWidth - matchStart >= 3){
                 for (int i = matchStart; i < BoardWidth; ++i){
-                    matchedIndices[i] = -1;
+                    matchedIndices[i + y * BoardWidth] = -1;
                 }
             }
         }
+        return matchedIndices;
     }
 
-    private void CheckVerticalMatches(NativeArray<int> matchedIndices) {
+    private NativeArray<int> CheckVerticalMatches(NativeArray<int> matchedIndices) {
         for (int x = 0; x < BoardWidth; x++) {
             int matchStart = -1;
             int currentColor = -1;
@@ -369,12 +337,12 @@ public partial struct GameSystem : ISystem
                 int color = BoardLayout[index];
                 if (color == currentColor && color != MaxColors) {
                     if (matchStart == -1){
-                        matchStart = index - BoardWidth;
+                        matchStart = y - 1;
                     }
                 } else {
-                    if (matchStart != -1 && (index - matchStart) / BoardWidth >= 3) {
-                        for (int i = matchStart; i < index; i += BoardWidth) {
-                            matchedIndices[i] = -1;
+                    if (matchStart != -1 && y - matchStart >= 3) {
+                        for (int i = matchStart; i < y; ++i) {
+                            matchedIndices[x + i * BoardWidth] = -1;
                         }
                     }
                     matchStart = -1;
@@ -382,12 +350,13 @@ public partial struct GameSystem : ISystem
                 currentColor = color;
             }
 
-            if (matchStart != -1 && (BoardHeight - matchStart / BoardWidth) >= 3) {
-                for (int i = matchStart; i < BoardHeight; i += BoardWidth) {
-                    matchedIndices[i] = -1;
+            if (matchStart != -1 && BoardHeight - matchStart >= 3) {
+                for (int i = matchStart; i < BoardHeight; ++i) {
+                    matchedIndices[x + i * BoardWidth] = -1;
                 }
             }
         }
+        return matchedIndices;
     }
 
     
