@@ -7,6 +7,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
+[UpdateAfter(typeof(GameSystem))]
+[UpdateAfter(typeof(MoveSystem))]
+[UpdateAfter(typeof(DeleteSystem))]
+[BurstCompile]
 public partial struct LayoutSystem : ISystem
 {
     //このシステムが作成されたときに呼び出される。
@@ -18,7 +22,6 @@ public partial struct LayoutSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
-        Debug.Log("testtttttttttt");
         var layout = SystemAPI.GetSingleton<Layout>();
 
         int board_size = GameSystem.BoardWidth;
@@ -49,7 +52,7 @@ public partial struct LayoutSystem : ISystem
             }
         }
 
-        Debug.Log(orb_num[0]);
+        //Debug.Log(orb_num[0]);
         
         
 
@@ -94,6 +97,8 @@ public partial struct LayoutSystem : ISystem
             }
         }
 
-        state.Enabled = false;
+
+        
+        //state.Enabled = false;
     }
 }
