@@ -251,10 +251,68 @@ public partial struct MoveSystem : ISystem
                 //空白がない場合
                 //移動終了
                 //GameSystem.BoardLayout = Board;
+                //ボードが詰みでないか確認
+                bool isStun = false;
+                while(isStuned(Board)){
+                    //詰みの場合
+                    //ランダムにピースを入れ替える
+                    for(int y = 0; y < GameSystem.BoardHeight; ++y){
+                        for(int x = 0; x < GameSystem.BoardWidth; ++x){
+                            if(x < GameSystem.BoardWidth - 1 && Board[x + y * GameSystem.BoardWidth] == Board[x + 1 + y * GameSystem.BoardWidth]){
+                                byte color = Board[x + y * GameSystem.BoardWidth];
+                                var random = new Unity.Mathematics.Random((uint)UnityEngine.Random.Range(1, int.MaxValue));
+                                var randomIndex = random.NextInt(GameSystem.BoardWidth * GameSystem.BoardHeight);
+                                while(Board[randomIndex] == GameSystem.MaxColors){
+                                    randomIndex = random.NextInt(GameSystem.BoardWidth * GameSystem.BoardHeight);
+                                }
+                                Board[x + y * GameSystem.BoardWidth] = Board[randomIndex];
+                                Board[randomIndex] = color;
+                            }
+                        }
+                    }
+                    isStun = true;
+                }
+                if(isStun) {
+                    GameSystem.BoardLayout = Board;
+                    return;
+                }
                 trigger.Trigger = 1;
                 SystemAPI.SetSingleton(trigger);
             }
         }
+    }
+
+    private bool isStuned(NativeArray<byte> Board){
+        return isHorizontalStuned(Board) && isVerticalStuned(Board);
+    }
+
+    private bool isHorizontalStuned(NativeArray<byte> Board){
+        
+        for(int y = 0; y < GameSystem.BoardHeight; ++y){
+            for(int x = 0; x < GameSystem.BoardWidth - 1; ++x){
+                if(Board[x + y * GameSystem.BoardWidth] == Board[x + 1 + y * GameSystem.BoardWidth]){
+                    byte color = Board[x + y * GameSystem.BoardWidth];
+                    if((x < GameSystem.BoardWidth - 2 && Board[(x + 2) + y * GameSystem.BoardWidth] != GameSystem.MaxColors && ((y < GameSystem.BoardHeight - 1 && Board[x + 2 + (y + 1) * GameSystem.BoardWidth] == color) || (y > 0 && Board[x + 2 + (y - 1) * GameSystem.BoardWidth] == color))) || (x < GameSystem.BoardWidth - 3 && Board[x + 3 + y * GameSystem.BoardWidth] == color) || (x > 0 && Board[(x - 1) + y * GameSystem.BoardWidth] != GameSystem.MaxColors && ((y > 0 && Board[x - 1 + (y - 1) * GameSystem.BoardWidth] == color) || (y < GameSystem.BoardHeight - 1 && Board[x - 1 + (y + 1) * GameSystem.BoardWidth] == color))) || (x > 1 && Board[x - 2 + y * GameSystem.BoardWidth] == color)){
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    private bool isVerticalStuned(NativeArray<byte> Board){
+        for(int x = 0; x < GameSystem.BoardWidth; ++x){
+            for(int y = 0; y < GameSystem.BoardHeight - 1; ++y){
+                if(Board[x + y * GameSystem.BoardWidth] == Board[x + (y + 1) * GameSystem.BoardWidth]){
+                    byte color = Board[x + y * GameSystem.BoardWidth];
+                    if((y < GameSystem.BoardHeight - 2 && Board[x + (y + 2) * GameSystem.BoardWidth] != GameSystem.MaxColors && ((x < GameSystem.BoardWidth - 1 && Board[x + 1 + (y + 2) * GameSystem.BoardWidth] == color) || (x > 0 && Board[x - 1 + (y + 2) * GameSystem.BoardWidth] == color))) || (y < GameSystem.BoardHeight - 3 && Board[x + (y + 3) * GameSystem.BoardWidth] == color) || (y > 0 && Board[x + (y - 1) * GameSystem.BoardWidth] != GameSystem.MaxColors && ((x > 0 && Board[x - 1 + (y - 1) * GameSystem.BoardWidth] == color) || (x < GameSystem.BoardWidth - 1 && Board[x + 1 + (y - 1) * GameSystem.BoardWidth] == color))) || (y > 1 && Board[x + (y - 2) * GameSystem.BoardWidth] == color)){
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     private NativeList<int> makePiecePath(int x, int y, NativeList<int> path, NativeArray<byte> Board){
