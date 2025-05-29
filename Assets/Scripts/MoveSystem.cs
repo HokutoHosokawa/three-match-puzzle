@@ -196,40 +196,6 @@ public partial struct MoveSystem : ISystem
                 }
                 PieceDirection.Dispose();
             }
-            //ここに原因がある
-            // bool isKFinished = false;
-            // for(int l = 0; l < k; l++){
-            //     for(int y = GameSystem.BoardHeight - 1; y > 0 && !isKFinished; --y) {
-            //         for(int x = 0; x < GameSystem.BoardWidth && !isKFinished; ++x) {
-            //             int i = x + y * GameSystem.BoardWidth;
-            //             if(pathList[i] == l) {
-            //                 //パスができている場合
-            //                 //パスの先にあるピースを移動する
-            //                 //左したがいちばん最初のパスの先なので、ここをベースに考える
-            //                 int n = x;
-            //                 int m = y;
-            //                 while(m != 0) {
-            //                     if (m > 0 && pathList[n + (m - 1) * GameSystem.BoardWidth] == l) {
-            //                         //上にパスがある場合
-            //                         Board[n + m * GameSystem.BoardWidth] = Board[n + (m - 1) * GameSystem.BoardWidth];
-            //                         --m;
-            //                     } else if (n < GameSystem.BoardWidth - 1 && pathList[n + 1 + m * GameSystem.BoardWidth] == l) {
-            //                         //右にパスがある場合
-            //                         Board[n + m * GameSystem.BoardWidth] = Board[n + 1 + m * GameSystem.BoardWidth];
-            //                         ++n;
-            //                     } else if (n > 0 && pathList[n - 1 + m * GameSystem.BoardWidth] == l) {
-            //                         //右にパスがある場合
-            //                         Board[n + m * GameSystem.BoardWidth] = Board[n - 1 + m * GameSystem.BoardWidth];
-            //                         --n;
-            //                     }
-            //                 }
-            //                 var random = new Unity.Mathematics.Random((uint)UnityEngine.Random.Range(1, int.MaxValue));
-            //                 Board[n + m * GameSystem.BoardWidth] = (byte)random.NextInt(GameSystem.MaxColors);
-            //                 isKFinished = true;
-            //             }
-            //         }
-            //     }
-            // }
 
             pathList.Dispose();
             PathHead.Dispose();
