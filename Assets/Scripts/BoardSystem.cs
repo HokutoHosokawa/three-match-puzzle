@@ -32,7 +32,6 @@ public partial struct BoardSystem : ISystem
         }
         var instances = state.EntityManager.Instantiate(spawner.Prefab, board_count, Allocator.Temp);
         
-
         int i = 0;
         int width = board_size;
         foreach (var entity in instances)
