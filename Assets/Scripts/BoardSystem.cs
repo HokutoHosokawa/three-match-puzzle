@@ -20,38 +20,36 @@ public partial struct BoardSystem : ISystem
     {
         var spawner = SystemAPI.GetSingleton<Board>();
 
-        int board_size = 5;
+        int board_size = GameSystem.BoardWidth;
 
-        int[,] board = 
-        {{1,1,1,1,1},
-        {1,1,1,0,0},
-        {1,1,1,1,1},
-        {0,0,1,1,1},
-        {1,1,1,1,1}};
+        NativeArray<byte> board = GameSystem.BoardLayout;
                         
         int board_count = 0;
-        for (int j=0; j<board_size; j++){
-            for (int k=0; k<board_size; k++){
-                if (board[j,k]==1){
-                    board_count++;
-                }
+        for (int j=0; j<board.Length; j++){
+            if (board[j] != (byte)GameSystem.MaxColors){
+                board_count++;
             }
         }
         var instances = state.EntityManager.Instantiate(spawner.Prefab, board_count, Allocator.Temp);
+        
         int i = 0;
         int width = board_size;
         foreach (var entity in instances)
         {
-            while(board[(i % board_size), (i / board_size)] == 0){
+            while(board[i] == (byte)GameSystem.MaxColors){
                 i++;
             }
             var xform = SystemAPI.GetComponentRW<LocalTransform>(entity);
             xform.ValueRW = LocalTransform.FromScale(0.8f);
-            xform.ValueRW = LocalTransform.FromPosition(1.2f * (i/width - width/2), 1.2f * ((i%width) - width/2),0);
+            if (width % 2 == 0){
+                xform.ValueRW = LocalTransform.FromPosition(1.2f * (i%width - width/2 + 0.5f), 1.2f * ((width - (i/width) - 1) - width/2 + 0.5f),0);
+            }
+            else
+            {
+                xform.ValueRW = LocalTransform.FromPosition(1.2f * (i%width - width/2), 1.2f * ((width - (i/width) - 1) - width/2),0);
+            }
             i++;
         }
-        Debug.Log(i);
-
         state.Enabled = false;
     }
 }
